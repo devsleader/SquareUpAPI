@@ -15,6 +15,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 # Load environment variables
 load_dotenv()
@@ -187,6 +188,8 @@ try:
     driver.get("https://app.squareup.com/dashboard/sales/reports/item-sales")
 
     time.sleep(25)  # Wait for the page to load fully
+    
+    
 
     # Step 6: Click on the date selector and set the range
     print("[DEBUG] Clicking on the date selector and setting the range...")

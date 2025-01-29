@@ -8,6 +8,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -80,36 +83,80 @@ try:
     )
     continue_button.click()
     print("[INFO] Clicked 'Continue to Square' button.")
+    
+    time.sleep(25)
 
-    # Step 7: Navigate to the Square Dashboard items page
+    # Step 7: Check for and click the dismiss button if present
+    try:
+        # Wait for the notifications toaster to be present
+        print("[DEBUG] Waiting for notifications toaster to be present...")
+        toaster = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "notifications-toaster.svelte-9e69kb.open"))
+        )
+        print("[DEBUG] Notifications toaster found.")
+
+        # Wait for 10 seconds
+        print("[DEBUG] Waiting for 10 seconds before proceeding...")
+        time.sleep(10)
+
+        # Wait for the shadow host element to be present
+        print("[DEBUG] Waiting for shadow host element to be present...")
+        shadow_host = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "eh-market-button[data-testid='notification-card-dismiss']"))
+        )
+        print("[DEBUG] Shadow host element found.")
+
+        # Access the shadow root of the element
+        shadow_root = shadow_host.shadow_root
+        print("[DEBUG] Accessed shadow root.")
+
+        # Find the dismiss button inside the shadow root
+        print("[DEBUG] Waiting for dismiss button to be clickable...")
+        dismiss_button = WebDriverWait(shadow_root, 10).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, "dismiss"))
+        )
+        print("[DEBUG] Dismiss button found and is clickable.")
+
+        # Click the dismiss button
+        dismiss_button.click()
+        print("[INFO] Dismiss button clicked.")
+
+    except TimeoutException:
+        print("[ERROR] Timeout occurred while waiting for an element.")
+    except NoSuchElementException:
+        print("[ERROR] Element not found.")
+    except Exception as e:
+        print(f"[ERROR] An error occurred: {e}")
+
+
+    # Step 8: Navigate to the Square Dashboard items page
     dashboard_url = "https://app.squareup.com/dashboard/items/library"
     driver.get(dashboard_url)
     print(f"[INFO] Navigated to the dashboard page: {dashboard_url}")
     
-    time.sleep(25)
-
-    # Step 8: Click on the action button
+    time.sleep(30)
+    # Step 9: Click on the action button
     action_button = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.ID, "item-library-actions-dropdown-button-label"))
     )
     action_button.click()
     print("[INFO] Clicked on the action button.")
 
-    # Step 9: Click on the export library button
+    # Step 10: Click on the export library button
     export_button = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.ID, "item-library-actions-export-row-label"))
     )
     export_button.click()
     print("[INFO] Clicked on the export library button.")
 
-    # Step 10: Click on the export button in the modal
+    # Step 11: Click on the export button in the modal
     final_export_button = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, "market-button[data-test-catalog-export-modal-export]"))
     )
     final_export_button.click()
     print("[INFO] Clicked on the final export button.")
 
-    # Step 11: Wait for the file to download
+    # Step 12: Wait for the file to download
     def wait_for_download(directory, timeout=60):
         end_time = time.time() + timeout
         while True:
@@ -133,4 +180,3 @@ except Exception as e:
 finally:
     print("[INFO] Closing the browser.")
     driver.quit()
-       
